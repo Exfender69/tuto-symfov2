@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="ec12453a-65c0-4601-b0cb-c98437aaa8a0" name="symgo" url="http://34.90.191.75">
+        <fileTransfer host="34.90.191.75" port="22" privateKey="C:\Users\akadem\Google Drive\Info\sshkeys\googlepriv.ppk" accessType="SFTP" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
