@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse; // N'oubliez pas ce use
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
+use OC\PlatformBundle\Entity\Advert;
 
 /**
  * @Route("/platform", name="oc_platform")
@@ -65,14 +65,8 @@ class AdvertController extends Controller
      */
     public function viewAction($id)
     {
-        // Ici, on récupérera l'annonce correspondante à l'id $id
-        $advert = array(
-            'title' => 'Recherche développpeur Symfony2',
-            'id' => 1,
-            'author' => 'Alexandre',
-            'content' => 'Nous recherchons un développeur Symfony2 débutant sur Lyon. Blabla…',
-            'date' => new \Datetime()
-        );
+        $advert = new Advert;
+        $advert->setContent("Recherche développeur Symfony2.");
 
         return $this->render('OCPlatformBundle:Advert:view.html.twig', array(
             'advert' => $advert
@@ -100,7 +94,7 @@ class AdvertController extends Controller
         $antispam = $this->container->get('oc_platform.antispam');
 
         // Je pars du principe que $text contient le texte d'un message quelconque
-        $text = '...';
+        $text = '..aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.';
         if ($antispam->isSpam($text)) {
             throw new \Exception('Votre message a été détecté comme spam !');
         }
