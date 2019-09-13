@@ -11,7 +11,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse; // N'oubliez pas ce use
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use OC\PlatformBundle\Entity\Advert;
+use OC\PlatformBundle\Entity\Advert1;
+use Doctrine\ORM\EntityRepository;
 
 /**
  * @Route("/platform", name="oc_platform")
@@ -65,12 +66,166 @@ class AdvertController extends Controller
      */
     public function viewAction($id)
     {
-        $advert = new Advert;
-        $advert->setContent("Recherche développeur Symfony2.");
+        // On récupère le repository
+        //$repository = $this->getDoctrine()
+        //    ->getManager()
+        //    ->getRepository('OCPlatformBundle:Advert')
+        //;
+        $repository = $this
+            ->getDoctrine()
+            ->getManager()
+            ->getRepository('OCPlatformBundle:Advert')
+        ;
+        $advert = $repository->find(1);
 
+        // $advert est donc une instance de OC\PlatformBundle\Entity\Advert
+        // ou null si l'id $id  n'existe pas, d'où ce if :
+        if (null === $advert) {
+            throw new NotFoundHttpException("L'annonce d'id ".$id." n'existe pas.");
+        }
+
+        // Le render ne change pas, on passait avant un tableau, maintenant un objet
         return $this->render('OCPlatformBundle:Advert:view.html.twig', array(
             'advert' => $advert
         ));
+    }
+
+    /**
+     * @Route("/query")
+     */
+    public function testAction()
+    {
+        $repository = $this
+            ->getDoctrine()
+            ->getManager()
+            ->getRepository('OCPlatformBundle:Advert')
+        ;
+
+        $listAdverts = $repository->query();
+
+        return $this->render('OCPlatformBundle:Advert:query.html.twig', array(
+            'listAdverts' => $listAdverts
+        ));
+    }
+
+    /**
+     * @Route("/query2")
+     */
+    public function test2Action()
+    {
+        $advert = new Advert1();
+        $advert->setTitle("Recherche développeur !");
+        $advert->setAuthor('Marine');
+        $advert->setContent("Nous recherchons un développeur Symfony débutant sur Lyon. Blabla…");
+        $advert->setDate(new \DateTime());
+        $advert->setCategory("Java");
+
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($advert);
+        $em->flush(); // C'est à ce moment qu'est généré le slug
+
+        return new Response('Slug généré : '.$advert->getSlug());
+        // Affiche « Slug généré : recherche-developpeur »
+    }
+
+    /**
+     *@Route("/cat")
+     */
+    public function catAction(){
+        $repository = $this
+            ->getDoctrine()
+            ->getManager()
+            ->getRepository('OCPlatformBundle:Advert1');
+
+
+        $listAdverts = $repository->getAdvertWithCategories(array ('Amar','GilbErt'));
+
+
+        foreach ($listAdverts as $advert) {
+            // $advert est une instance de Advert
+            $advert->getContent();
+            $advert->getAuthor();
+            $advert->getTitle();
+            $advert->getDate();
+        }
+
+        return $this->render('OCPlatformBundle:Advert:find2.html.twig', array(
+            'listAdverts' =>$listAdverts));
+    }
+
+
+    /**
+    *@Route("/limite")
+    */
+    public function limiteAction(){
+        $repository = $this
+            ->getDoctrine()
+            ->getManager()
+            ->getRepository('OCPlatformBundle:Advert1');
+
+        $listAdverts = $repository->getApplicationsWithAdvert(10);
+
+        foreach ($listAdverts as $advert) {
+            // $advert est une instance de Advert
+            $advert->getContent();
+            $advert->getAuthor();
+            $advert->getTitle();
+        }
+
+        return $this->render('OCPlatformBundle:Advert:find2.html.twig', array(
+            'listAdverts' =>$listAdverts));
+    }
+
+    /**
+     * @Route("/findby")
+     */
+    public function trouverAction()
+    {
+        $repository = $this
+            ->getDoctrine()
+            ->getManager()
+            ->getRepository('OCPlatformBundle:Advert');
+
+        $listAdverts = $repository->findAll();
+
+        /*$listAdverts = $repository->findBy(
+            array('author' => 'Alexandre'), // Critere
+            array('date' => 'desc'),        // Tri
+            5,                              // Limite
+            0                               // Offset
+        );*/
+
+        foreach ($listAdverts as $advert) {
+            // $advert est une instance de Advert
+             $advert->getContent();
+             $advert->getAuthor();
+        }
+
+        // Le render ne change pas, on passait avant un tableau, maintenant un objet
+        return $this->render('OCPlatformBundle:Advert:find.html.twig', array(
+             'listAdverts' =>$listAdverts
+        ));
+    }
+
+    /**
+     * @Route("/supprimer")
+     */
+    public function supprAction(Request $request)
+    {
+        $advertSuppr = new Advert();
+        $advertSuppr -> setTitle('Recherche développeur Symfony3.');
+        $advertSuppr->setAuthor('Amar');
+        $advertSuppr->setContent("Nous recherchons un développeur Symfony2 débutant sur Lyon. Blabla…");
+        $advertSuppr->setDate(new \DateTime());
+        $em = $this->getDoctrine()->getManager();
+
+        // Étape 1 : On « persiste » l'entité
+        $em->persist($advertSuppr);
+
+        // Étape 2 : On « flush » tout ce qui a été persisté avant
+        $em->flush();
+        $request->getSession()->getFlashBag()->add('notice', 'Annonce bien enregistrée.');
+        return $this->render('::suppr.html.twig');
     }
 
     /**
@@ -78,16 +233,28 @@ class AdvertController extends Controller
      */
     public function addAction(Request $request)
     {
-        // La gestion d'un formulaire est particulière, mais l'idée est la suivante :alpha
+        // Création de l'entité
+        $advert = new Advert();
+        $advert->setTitle('Recherche développeur Symfony3.');
+        $advert->setAuthor('Amar');
+        $advert->setContent("Nous recherchons un développeur Symfony2 débutant sur Lyon. Blabla…");
+        $advert->setDate(new \DateTime());
+        // On peut ne pas définir ni la date ni la publication,
+        // car ces attributs sont définis automatiquement dans le constructeur
 
-        // Si la requête est en POST, c'est que le visiteur a soumis le formulaire
+        // On récupère l'EntityManager
+        $em = $this->getDoctrine()->getManager();
+
+        // Étape 1 : On « persiste » l'entité
+        $em->persist($advert);
+
+        // Étape 2 : On « flush » tout ce qui a été persisté avant
+        $em->flush();
+
+        // Reste de la méthode qu'on avait déjà écrit
         if ($request->isMethod('POST')) {
-            // Ici, on s'occupera de la création et de la gestion du formulaire
-
             $request->getSession()->getFlashBag()->add('notice', 'Annonce bien enregistrée.');
-
-            // Puis on redirige vers la page de visualisation de cettte annonce
-            return $this->redirectToRoute('oc_platform_view', array('id' => 5));
+            return $this->redirect($this->generateUrl('oc_platform_view', array('id' => $advert->getId())));
         }
 
         // On récupère le service

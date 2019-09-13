@@ -10,4 +10,14 @@ namespace OC\PlatformBundle\Entity;
  */
 class AdvertRepository extends \Doctrine\ORM\EntityRepository
 {
+    public function query()
+    {
+        return $this
+            ->createQueryBuilder('a')
+            ->getQuery()
+            ->getResult()
+            ;
+    }
+
+
 }
