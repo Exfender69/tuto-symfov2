@@ -39,7 +39,7 @@ twig:
 assetic:
     debug: '%kernel.debug%'
     use_controller: false
-    bundles: []
+    #bundles: []
     #java: /usr/bin/java
     filters:
         cssrewrite: ~
@@ -69,6 +69,13 @@ doctrine:
         auto_generate_proxy_classes: '%kernel.debug%'
         naming_strategy: doctrine.orm.naming_strategy.underscore
         auto_mapping: true
+
+        
+# Stof\DoctrineExtensionsBundle configuration
+stof_doctrine_extensions:
+    orm:
+        default:
+            sluggable: true
 
 # Swiftmailer Configuration
 swiftmailer:
